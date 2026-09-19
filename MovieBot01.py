@@ -149,7 +149,7 @@ def handle_forwarded_movie(message):
     bot.reply_to(message, f"✅ သိမ်းဆည်းပြီးပါပြီ: {title[:25]}...")
 
 # ==========================================
-# 3. USER SEARCH SYSTEM
+# 3. USER SEARCH SYSTEM (Flexible Search ဖြင့် ပြင်ဆင်ထားသည်)
 # ==========================================
 @bot.message_handler(func=lambda message: True)
 def search_movie(message):
@@ -162,24 +162,33 @@ def search_movie(message):
         bot.send_message(message.chat.id, "❌ သင်သည် Channel ကို Join ရသေးပါ။\nကျေးဇူးပြု၍ အောက်ပါ Button ကိုနှိပ်ပြီး Join ပါ။", reply_markup=markup)
         return
 
+    # --- အသစ်ပြင်ဆင်ထားသော ရှာဖွေရေးစနစ် ---
+    # User ရိုက်ထည့်လိုက်တဲ့ စာသားထဲက ( . ) ( _ ) ( - ) တွေကို ဖယ်ရှားပြီး စကားလုံးခွဲထုတ်ပါမယ်
+    clean_text = search_text.replace('.', ' ').replace('_', ' ').replace('-', ' ')
+    words = clean_text.split()
+    
+    # စကားလုံးတွေကြားထဲမှာ Wildcard (%) တွေခံပြီး ရှာပါမယ်
+    # ဥပမာ - "The Master's Sun" လို့ရှာရင် "%The%Master's%Sun%" ဆိုပြီး ပြောင်းရှာပေးပါမယ်
+    search_pattern = '%' + '%'.join(words) + '%'
+
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    c.execute('SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10', ('%'+search_text+'%',))
+    c.execute('SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10', (search_pattern,))
     results = c.fetchall()
     conn.close()
 
     if not results:
-        bot.reply_to(message, "❌ သင်ရှာဖွေသော ဇာတ်ကားကို မတွေ့ရှိပါ။ နာမည်စာလုံးပေါင်း မှန်ကန်အောင် ပြန်လည်ရိုက်ထည့်ကြည့်ပါ။")
+        bot.reply_to(message, "❌ သင်ရှာဖွေသော ဇာတ်ကားကို မတွေ့ရှိပါ။ နာမည်တစ်စိတ်တစ်ပိုင်းကိုသာ ရိုက်ရှာကြည့်ပါ။ (ဥပမာ - Master's Sun)")
         return
 
     markup = InlineKeyboardMarkup()
     for row in results:
         movie_id = row[0]
         movie_title = row[1]
+        # ခလုတ်နာမည် အရမ်းရှည်လျှင် Error တက်နိုင်သဖြင့် စာလုံးရေ ၃၀ သာ ဖြတ်ယူပြသမည်
         markup.add(InlineKeyboardButton(f"🎬 {movie_title[:30]}", callback_data=f"dl_{movie_id}"))
 
     bot.send_message(message.chat.id, "🔎 အောက်ပါ ဇာတ်ကားများကို ရှာဖွေတွေ့ရှိပါသည်။", reply_markup=markup)
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('dl_'))
 def handle_movie_click(call):
     user_id = call.from_user.id
