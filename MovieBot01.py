@@ -31,7 +31,7 @@ def keep_alive():
 TOKEN = '8851102821:AAFyaFEyy22U0BaLNlpfPPfEvPu8PDypgOA'  
 
 # ⚠️ အရေးကြီး: ဤနေရာတွင် သင့်ရဲ့ Telegram User ID (ဂဏန်း) ကို ပြောင်းထည့်ပါ
-ADMIN_ID = @Mr_Zin1219  
+ADMIN_ID = 5293498783  
 
 # သင်ပေးထားသော Adsterra Direct Link အသစ်
 DIRECT_AD_LINK = 'https://www.profitableratecpmnetwork.com/z6jgwxkza?key=bc0115c60096e6024fb9b5c27ec2bdcb' 
